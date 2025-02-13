@@ -60,7 +60,7 @@ def receive_content():
                 st.error("Incorrect PIN. Please try again.")
 
 # Main Streamlit UI
-st.title("Secure File/Text Transfer App")
+st.title("XChange File/Text Transfer App")
 
 mode = st.radio("Choose mode", ("Send", "Receive"))
 
