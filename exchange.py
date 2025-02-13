@@ -2,7 +2,6 @@ import streamlit as st
 import random
 import string
 import os
-from io import BytesIO
 
 # Set up a directory for storing content (in a production environment, you'd use a cloud service)
 UPLOAD_FOLDER = 'uploads'
@@ -60,14 +59,19 @@ def receive_content():
                 st.error("Incorrect PIN. Please try again.")
 
 # Main Streamlit UI
-st.title("XChange File/Text Transfer App")
+st.title("Secure File/Text Transfer App")
 
-mode = st.radio("Choose mode", ("Send", "Receive"))
+# Create two columns: one for sending, one for receiving
+col1, col2 = st.columns(2)
 
-if mode == "Send":
+# **Sender Column (col1)**:
+with col1:
+    st.header("Send Content")
     pin = send_file_or_text()
     if pin:
         st.success(f"Your PIN is: {pin}")  # Inform the user about the PIN for sending
 
-elif mode == "Receive":
+# **Receiver Column (col2)**:
+with col2:
+    st.header("Receive Content")
     receive_content()
