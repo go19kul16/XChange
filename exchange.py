@@ -2,9 +2,6 @@ import streamlit as st
 import random
 import string
 
-# This dictionary will store content temporarily (in a real-world scenario, you'd use a database or file system)
-storage = {}
-
 # Function to generate a random 4-digit PIN
 def generate_pin():
     return ''.join(random.choices(string.digits, k=4))
@@ -18,15 +15,15 @@ def send_file_or_text():
         text_to_send = st.text_area("Enter the text you want to send:")
         if text_to_send:
             st.write(f"Your PIN is: {pin}")
-            # Store the text content in storage with the PIN as key
-            storage[pin] = text_to_send
+            # Store the text content in session_state with the PIN as key
+            st.session_state.storage[pin] = text_to_send
             return pin
     elif choice == "File":
         uploaded_file = st.file_uploader("Upload a file", type=["txt", "pdf", "jpg", "png", "docx"])
         if uploaded_file is not None:
             st.write(f"Your PIN is: {pin}")
-            # Store the file content in storage with the PIN as key
-            storage[pin] = uploaded_file
+            # Store the file content in session_state with the PIN as key
+            st.session_state.storage[pin] = uploaded_file
             return pin
     return None
 
@@ -35,9 +32,9 @@ def receive_content():
     pin_entered = st.text_input("Enter the PIN to receive the content:")
     
     if pin_entered:
-        if pin_entered in storage:
+        if pin_entered in st.session_state.storage:
             st.write("PIN Verified Successfully!")
-            content = storage[pin_entered]
+            content = st.session_state.storage[pin_entered]
             # Check if the content is text or file
             if isinstance(content, str):  # If it's text
                 st.write("Text received:")
@@ -47,6 +44,10 @@ def receive_content():
                 st.download_button("Download the file", content, file_name="received_file")
         else:
             st.error("Incorrect PIN. Please try again.")
+
+# Initialize session state for storage if it does not exist
+if "storage" not in st.session_state:
+    st.session_state.storage = {}
 
 # Main Streamlit UI
 st.title("Secure File/Text Transfer App")
@@ -60,4 +61,3 @@ if mode == "Send":
 
 elif mode == "Receive":
     receive_content()
-
