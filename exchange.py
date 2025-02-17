@@ -46,6 +46,7 @@ def send_file_or_text():
     return None
 
 # Function to receive content using the PIN
+# Function to receive content using the PIN
 def receive_content():
     pin_entered = st.text_input("Enter the PIN to receive the content:")
 
@@ -68,13 +69,18 @@ def receive_content():
 
                     # If it's a ZIP, allow extraction
                     if file.endswith(".zip"):
-                        with zipfile.ZipFile(file_path, 'r') as zip_ref:
-                            zip_ref.extractall(os.path.join(UPLOAD_FOLDER, pin_entered))
-                        st.write(f"ZIP file extracted to: {os.path.join(UPLOAD_FOLDER, pin_entered)}")
+                        # Check if it's actually a file and not a directory
+                        if os.path.isdir(file_path):
+                            st.error(f"{file} is a directory, not a file!")
+                        else:
+                            with zipfile.ZipFile(file_path, 'r') as zip_ref:
+                                zip_ref.extractall(os.path.join(UPLOAD_FOLDER, pin_entered))
+                            st.write(f"ZIP file extracted to: {os.path.join(UPLOAD_FOLDER, pin_entered)}")
                     else:
                         # For non-ZIP files, just provide a download button
-                        with open(file_path, 'rb') as f:
-                            st.download_button(label="Download the file", data=f, file_name=file)
+                        if os.path.isfile(file_path):  # Ensure it's not a directory
+                            with open(file_path, 'rb') as f:
+                                st.download_button(label="Download the file", data=f, file_name=file)
                     break
 
             if not found:
