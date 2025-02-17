@@ -26,7 +26,7 @@ def send_file_or_text():
                 f.write(text_to_send)
             return pin
     elif choice == "File":
-        uploaded_file = st.file_uploader("Upload a file", type=["txt", "pdf", "jpg", "png", "docx"])
+        uploaded_file = st.file_uploader("Upload a file", type=["txt", "pdf", "jpg", "png", "docx","zip"])
         if uploaded_file is not None:
             st.write(f"Your PIN is: {pin}")
             # Save the file with the PIN as the filename
