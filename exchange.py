@@ -40,7 +40,7 @@ def send_file_or_text():
                     st.write(f"ZIP file extracted to: {zip_path}")
             else:
                 # Save other files with the PIN as part of the filename
-                with open(os.path.join(UPLOAD_FOLDER, f"{pin}_{uploaded_file.name}"), 'wb') as f:
+                with open(os.path.join(UPLOAD_FOLDER, f"{uploaded_file.name}"), 'wb') as f:
                     f.write(uploaded_file.getbuffer())
             return pin
     return None
