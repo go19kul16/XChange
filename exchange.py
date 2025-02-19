@@ -45,8 +45,6 @@ def send_file_or_text():
             return pin
     return None
 
-# Function to receive content using the PIN
-# Function to receive content using the PIN
 def receive_content():
     pin_entered = st.text_input("Enter the PIN to receive the content:")
 
@@ -69,13 +67,22 @@ def receive_content():
 
                     # If it's a ZIP, allow extraction
                     if file.endswith(".zip"):
-                        # Check if it's actually a file and not a directory
-                        if os.path.isdir(file_path):
-                            st.error(f"{file} is a directory, not a file!")
+                        # Extract the ZIP file first
+                        zip_extract_path = os.path.join(UPLOAD_FOLDER, pin_entered)
+                        os.makedirs(zip_extract_path, exist_ok=True)
+                        
+                        with zipfile.ZipFile(file_path, 'r') as zip_ref:
+                            zip_ref.extractall(zip_extract_path)
+                            st.write(f"ZIP file extracted to: {zip_extract_path}")
+                        
+                        # List the extracted files
+                        extracted_files = os.listdir(zip_extract_path)
+                        if extracted_files:
+                            st.write("Extracted files:")
+                            for extracted_file in extracted_files:
+                                st.write(extracted_file)
                         else:
-                            with zipfile.ZipFile(file_path, 'r') as zip_ref:
-                                zip_ref.extractall(os.path.join(UPLOAD_FOLDER, pin_entered))
-                            st.write(f"ZIP file extracted to: {os.path.join(UPLOAD_FOLDER, pin_entered)}")
+                            st.write("No files extracted from the ZIP.")
                     else:
                         # For non-ZIP files, just provide a download button
                         if os.path.isfile(file_path):  # Ensure it's not a directory
@@ -85,21 +92,3 @@ def receive_content():
 
             if not found:
                 st.error("Incorrect PIN. Please try again.")
-
-# Main Streamlit UI
-st.title("Secure File/Text Transfer App")
-
-# Create two columns: one for sending, one for receiving
-col1, col2 = st.columns(2)
-
-# **Sender Column (col1)**:
-with col1:
-    st.header("Send Content")
-    pin = send_file_or_text()
-    if pin:
-        st.success(f"Your PIN is: {pin}")  # Inform the user about the PIN for sending
-
-# **Receiver Column (col2)**:
-with col2:
-    st.header("Receive Content")
-    receive_content()
