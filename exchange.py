@@ -66,7 +66,7 @@ def receive_content():
                     file_path = os.path.join(UPLOAD_FOLDER, file)
                     st.write(f"File received: {file}")
 
-                    # If it's a ZIP, allow extraction
+                    # If it's a ZIP, allow extraction and list extracted files
                     if file.endswith(".zip"):
                         # Extract the ZIP file first
                         zip_extract_path = os.path.join(UPLOAD_FOLDER, pin_entered)
@@ -82,7 +82,7 @@ def receive_content():
                             st.write("Extracted files:")
                             for extracted_file in extracted_files:
                                 extracted_file_path = os.path.join(zip_extract_path, extracted_file)
-                                # Provide download button for each file
+                                # Provide download button for each extracted file
                                 with open(extracted_file_path, 'rb') as f:
                                     st.download_button(
                                         label=f"Download {extracted_file}",
