@@ -76,12 +76,19 @@ def receive_content():
                             zip_ref.extractall(zip_extract_path)
                             st.write(f"ZIP file extracted to: {zip_extract_path}")
                         
-                        # List the extracted files
+                        # List the extracted files and provide download links
                         extracted_files = os.listdir(zip_extract_path)
                         if extracted_files:
                             st.write("Extracted files:")
                             for extracted_file in extracted_files:
-                                st.write(extracted_file)
+                                extracted_file_path = os.path.join(zip_extract_path, extracted_file)
+                                # Provide download button for each file
+                                with open(extracted_file_path, 'rb') as f:
+                                    st.download_button(
+                                        label=f"Download {extracted_file}",
+                                        data=f,
+                                        file_name=extracted_file
+                                    )
                         else:
                             st.write("No files extracted from the ZIP.")
                     else:
