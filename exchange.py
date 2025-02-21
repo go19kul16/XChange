@@ -45,7 +45,6 @@ def send_file_or_text():
             return pin
     return None
 
-# Function to receive content using the PIN
 def receive_content():
     pin_entered = st.text_input("Enter the PIN to receive the content:")
 
@@ -100,6 +99,7 @@ def receive_content():
 
             if not found:
                 st.error("Incorrect PIN. Please try again.")
+
 
 # Main Streamlit UI
 st.title("Secure File/Text Transfer App")
