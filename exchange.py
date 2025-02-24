@@ -84,31 +84,45 @@ def receive_content():
                     st.error("Incorrect PIN. Please try again.")
 
 # New page for transferring code
+import streamlit as st
+import pygments
+from pygments import lexers
+from pygments import formatters
+
+# Function to beautify code
+def beautify_code(code_to_send):
+    try:
+        # Try to automatically detect the language based on the code snippet
+        lexer = lexers.guess_lexer(code_to_send)
+        formatter = formatters.HtmlFormatter(linenos=True, full=True)
+        
+        # Beautify the code using the correct lexer and formatter
+        formatted_code = pygments.highlight(code_to_send, lexer, formatter)
+        
+        # Display the beautified code with syntax highlighting
+        st.markdown("### Your beautified code:")
+        st.markdown(f"<pre>{formatted_code}</pre>", unsafe_allow_html=True)
+
+        # Provide a button to download the beautified code as an HTML file
+        pin = generate_pin()
+        with open(os.path.join(UPLOAD_FOLDER, f"{pin}_code.py"), "w") as f:
+            f.write(code_to_send)
+        
+        st.download_button(label="Download Beautified Code", data=formatted_code, file_name=f"{pin}_code.html")
+        st.success(f"Code formatted and saved with PIN: {pin}")
+    except Exception as e:
+        st.error(f"Error formatting code: {e}")
+        st.write("Please ensure the code is valid and in the correct format.")
+
+# Page for code transfer and beautification
 def transfer_code_page():
     st.title("Transfer Code")
 
-    code_to_send = st.text_area("Enter your code here (or upload a file):")
+    code_to_send = st.text_area("Enter your code here:")
 
     if code_to_send:
-        try:
-            # Detect language based on the code
-            lexer = lexers.guess_lexer_for_filename("example.py", code_to_send)
-            formatter = formatters.HtmlFormatter(linenos=True, full=True)
-            formatted_code = pygments.highlight(code_to_send, lexer, formatter)
+        beautify_code(code_to_send)
 
-            st.markdown("### Your beautified code:")
-            st.markdown(f"<pre>{formatted_code}</pre>", unsafe_allow_html=True)
-
-            # Provide a button to download the beautified code as a file
-            pin = generate_pin()
-            with open(os.path.join(UPLOAD_FOLDER, f"{pin}_code.py"), "w") as f:
-                f.write(code_to_send)
-            st.download_button(label="Download Beautified Code", data=formatted_code, file_name=f"{pin}_code.html")
-            st.success(f"Code formatted and saved with PIN: {pin}")
-        except Exception as e:
-            st.error(f"Error formatting code: {e}")
-            # Add more specific error handling to detect the cause if possible
-            st.write("Please ensure the code is valid and in the correct format.")
 
 # Main Streamlit UI
 st.sidebar.title("Menu")
