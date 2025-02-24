@@ -90,9 +90,8 @@ def transfer_code_page():
     code_to_send = st.text_area("Enter your code here (or upload a file):")
 
     if code_to_send:
-        # Detect language based on the code
         try:
-            # Try to automatically detect the language using pygments
+            # Detect language based on the code
             lexer = lexers.guess_lexer_for_filename("example.py", code_to_send)
             formatter = formatters.HtmlFormatter(linenos=True, full=True)
             formatted_code = pygments.highlight(code_to_send, lexer, formatter)
@@ -108,6 +107,8 @@ def transfer_code_page():
             st.success(f"Code formatted and saved with PIN: {pin}")
         except Exception as e:
             st.error(f"Error formatting code: {e}")
+            # Add more specific error handling to detect the cause if possible
+            st.write("Please ensure the code is valid and in the correct format.")
 
 # Main Streamlit UI
 st.sidebar.title("Menu")
