@@ -3,7 +3,6 @@ import random
 import string
 import os
 import zipfile
-import io
 import pygments
 from pygments import lexers
 from pygments import formatters
@@ -88,15 +87,15 @@ def beautify_code(code_to_send, language):
     try:
         # Use the selected language's lexer
         if language == "Python":
-            lexer = lexers.get_formatter_by_name('python')
+            lexer = lexers.get_lexer_by_name('python')
         elif language == "JavaScript":
-            lexer = lexers.get_formatter_by_name('javascript')
+            lexer = lexers.get_lexer_by_name('javascript')
         elif language == "Java":
-            lexer = lexers.get_formatter_by_name('java')
+            lexer = lexers.get_lexer_by_name('java')
         elif language == "C++":
-            lexer = lexers.get_formatter_by_name('cpp')
+            lexer = lexers.get_lexer_by_name('cpp')
         elif language == "Ruby":
-            lexer = lexers.get_formatter_by_name('ruby')
+            lexer = lexers.get_lexer_by_name('ruby')
         else:
             lexer = lexers.guess_lexer(code_to_send)  # Default guess if no language is selected
 
