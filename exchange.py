@@ -59,9 +59,7 @@ def receive_content():
                 content = f.read()
             st.write("Text received:")
             st.write(content)
-            # Delete the file after it is downloaded
-            os.remove(text_file_path)
-            st.success("Content downloaded. PIN is now invalid.")
+            # No file deletion, PIN remains valid for further downloads
         else:
             # If it's a ZIP file (not extracted), provide the option to download it
             for file in os.listdir(UPLOAD_FOLDER):
@@ -69,9 +67,6 @@ def receive_content():
                     st.write(f"ZIP file received: {file}")
                     with open(os.path.join(UPLOAD_FOLDER, file), 'rb') as f:
                         st.download_button(label=f"Download ZIP file", data=f, file_name=file)
-                    # Delete the ZIP file after it's downloaded
-                    os.remove(os.path.join(UPLOAD_FOLDER, file))
-                    st.success("ZIP file downloaded. PIN is now invalid.")
                     break
             else:
                 # If it's a regular file, allow downloading the file
@@ -80,9 +75,6 @@ def receive_content():
                         st.write(f"File received: {file}")
                         with open(os.path.join(UPLOAD_FOLDER, file), 'rb') as f:
                             st.download_button(label="Download the file", data=f, file_name=file)
-                        # Delete the regular file after it's downloaded
-                        os.remove(os.path.join(UPLOAD_FOLDER, file))
-                        st.success("File downloaded. PIN is now invalid.")
                         break
                 else:
                     st.error("Incorrect PIN. Please try again.")
