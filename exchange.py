@@ -3,7 +3,6 @@ import random
 import string
 import os
 import zipfile
-import io
 
 # Set up a directory for storing content (in a production environment, you'd use a cloud service)
 UPLOAD_FOLDER = 'uploads'
@@ -34,10 +33,11 @@ def send_file_or_text():
             
             # Check if the uploaded file is a ZIP file
             if uploaded_file.name.endswith(".zip"):
-                # Extract the ZIP file's contents
-                with zipfile.ZipFile(uploaded_file, 'r') as zip_ref:
-                    zip_ref.extractall(os.path.join(UPLOAD_FOLDER, pin))  # Extract to a directory named with the PIN
-                st.success(f"ZIP file uploaded and extracted with PIN: {pin}")
+                # Save the ZIP file without extracting its contents
+                zip_file_path = os.path.join(UPLOAD_FOLDER, f"{pin}_{uploaded_file.name}")
+                with open(zip_file_path, 'wb') as f:
+                    f.write(uploaded_file.getbuffer())
+                st.success(f"ZIP file uploaded with PIN: {pin}")
             else:
                 # Save the file with the PIN as the filename for other file types
                 with open(os.path.join(UPLOAD_FOLDER, f"{pin}_{uploaded_file.name}"), 'wb') as f:
@@ -60,19 +60,17 @@ def receive_content():
             st.write("Text received:")
             st.write(content)
         else:
-            # If it's a directory containing extracted ZIP contents, list them
-            zip_folder_path = os.path.join(UPLOAD_FOLDER, pin_entered)
-            if os.path.exists(zip_folder_path):
-                st.write(f"Contents of ZIP file uploaded with PIN {pin_entered}:")
-                for file_name in os.listdir(zip_folder_path):
-                    st.write(f"- {file_name}")
-                    file_path = os.path.join(zip_folder_path, file_name)
-                    with open(file_path, 'rb') as f:
-                        st.download_button(label=f"Download {file_name}", data=f, file_name=file_name)
+            # If it's a ZIP file (not extracted), provide the option to download it
+            for file in os.listdir(UPLOAD_FOLDER):
+                if file.startswith(pin_entered) and file.endswith(".zip"):
+                    st.write(f"ZIP file received: {file}")
+                    with open(os.path.join(UPLOAD_FOLDER, file), 'rb') as f:
+                        st.download_button(label=f"Download ZIP file", data=f, file_name=file)
+                    break
             else:
                 # If it's a regular file, allow downloading the file
                 for file in os.listdir(UPLOAD_FOLDER):
-                    if pin_entered in file:
+                    if pin_entered in file and not file.endswith(".zip"):
                         st.write(f"File received: {file}")
                         with open(os.path.join(UPLOAD_FOLDER, file), 'rb') as f:
                             st.download_button(label="Download the file", data=f, file_name=file)
