@@ -7,7 +7,7 @@ import pygments
 from pygments import lexers
 from pygments import formatters
 
-# Set up a directory for storing content (in a production environment, you'd use a cloud service)
+# Set up a directory for storing content
 UPLOAD_FOLDER = 'uploads'
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
@@ -86,6 +86,7 @@ def receive_content():
 def beautify_code(code_to_send, language):
     try:
         # Use the selected language's lexer
+        lexer = None
         if language == "Python":
             lexer = lexers.get_lexer_by_name('python')
         elif language == "JavaScript":
@@ -110,8 +111,8 @@ def beautify_code(code_to_send, language):
 
         # Provide a button to download the beautified code as an HTML file
         pin = generate_pin()
-        with open(os.path.join(UPLOAD_FOLDER, f"{pin}_code.py"), "w") as f:
-            f.write(code_to_send)
+        with open(os.path.join(UPLOAD_FOLDER, f"{pin}_code.html"), "w") as f:
+            f.write(formatted_code)  # Save formatted code instead of original
 
         st.download_button(label="Download Beautified Code", data=formatted_code, file_name=f"{pin}_code.html")
         st.success(f"Code formatted and saved with PIN: {pin}")
