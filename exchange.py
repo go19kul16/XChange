@@ -83,22 +83,28 @@ def receive_content():
                 else:
                     st.error("Incorrect PIN. Please try again.")
 
-# New page for transferring code
-import streamlit as st
-import pygments
-from pygments import lexers
-from pygments import formatters
-
 # Function to beautify code
-def beautify_code(code_to_send):
+def beautify_code(code_to_send, language):
     try:
-        # Try to automatically detect the language based on the code snippet
-        lexer = lexers.guess_lexer(code_to_send)
+        # Use the selected language's lexer
+        if language == "Python":
+            lexer = lexers.get_formatter_by_name('python')
+        elif language == "JavaScript":
+            lexer = lexers.get_formatter_by_name('javascript')
+        elif language == "Java":
+            lexer = lexers.get_formatter_by_name('java')
+        elif language == "C++":
+            lexer = lexers.get_formatter_by_name('cpp')
+        elif language == "Ruby":
+            lexer = lexers.get_formatter_by_name('ruby')
+        else:
+            lexer = lexers.guess_lexer(code_to_send)  # Default guess if no language is selected
+
         formatter = formatters.HtmlFormatter(linenos=True, full=True)
-        
+
         # Beautify the code using the correct lexer and formatter
         formatted_code = pygments.highlight(code_to_send, lexer, formatter)
-        
+
         # Display the beautified code with syntax highlighting
         st.markdown("### Your beautified code:")
         st.markdown(f"<pre>{formatted_code}</pre>", unsafe_allow_html=True)
@@ -107,7 +113,7 @@ def beautify_code(code_to_send):
         pin = generate_pin()
         with open(os.path.join(UPLOAD_FOLDER, f"{pin}_code.py"), "w") as f:
             f.write(code_to_send)
-        
+
         st.download_button(label="Download Beautified Code", data=formatted_code, file_name=f"{pin}_code.html")
         st.success(f"Code formatted and saved with PIN: {pin}")
     except Exception as e:
@@ -118,11 +124,13 @@ def beautify_code(code_to_send):
 def transfer_code_page():
     st.title("Transfer Code")
 
+    # Ask user to select the programming language
+    language = st.selectbox("Select the programming language:", ["Python", "JavaScript", "Java", "C++", "Ruby", "Other"])
+
     code_to_send = st.text_area("Enter your code here:")
 
     if code_to_send:
-        beautify_code(code_to_send)
-
+        beautify_code(code_to_send, language)
 
 # Main Streamlit UI
 st.sidebar.title("Menu")
