@@ -2,7 +2,6 @@ import streamlit as st
 import random
 import string
 import os
-import zipfile
 
 # Set up a directory for storing content (in a production environment, you'd use a cloud service)
 UPLOAD_FOLDER = 'uploads'
@@ -27,23 +26,12 @@ def send_file_or_text():
                 f.write(text_to_send)
             return pin
     elif choice == "File":
-        uploaded_file = st.file_uploader("Upload a file", type=["txt", "pdf", "jpg", "png", "docx", "zip"])
+        uploaded_file = st.file_uploader("Upload a file", type=["txt", "pdf", "jpg", "png", "docx"])
         if uploaded_file is not None:
             st.write(f"Your PIN is: {pin}")
-            
-            # Check if the uploaded file is a ZIP file
-            if uploaded_file.name.endswith(".zip"):
-                # Save the ZIP file without extracting its contents
-                zip_file_path = os.path.join(UPLOAD_FOLDER, f"{pin}_{uploaded_file.name}")
-                with open(zip_file_path, 'wb') as f:
-                    f.write(uploaded_file.getbuffer())
-                st.success(f"ZIP file uploaded with PIN: {pin}")
-            else:
-                # Save the file with the PIN as the filename for other file types
-                with open(os.path.join(UPLOAD_FOLDER, f"{pin}_{uploaded_file.name}"), 'wb') as f:
-                    f.write(uploaded_file.getbuffer())
-                st.success(f"File uploaded with PIN: {pin}")
-
+            # Save the file with the PIN as the filename
+            with open(os.path.join(UPLOAD_FOLDER, f"{pin}_{uploaded_file.name}"), 'wb') as f:
+                f.write(uploaded_file.getbuffer())
             return pin
     return None
 
@@ -52,32 +40,23 @@ def receive_content():
     pin_entered = st.text_input("Enter the PIN to receive the content:")
 
     if pin_entered:
-        # Check if the uploaded content is a text file first
-        text_file_path = os.path.join(UPLOAD_FOLDER, f"{pin_entered}.txt")
-        if os.path.exists(text_file_path):
-            with open(text_file_path, 'r') as f:
+        file_path = os.path.join(UPLOAD_FOLDER, f"{pin_entered}.txt")
+        # Check if it's a text file first
+        if os.path.exists(file_path):
+            with open(file_path, 'r') as f:
                 content = f.read()
             st.write("Text received:")
             st.write(content)
-            # No file deletion, PIN remains valid for further downloads
         else:
-            # If it's a ZIP file (not extracted), provide the option to download it
+            # If not a text file, check for any file that contains the PIN
             for file in os.listdir(UPLOAD_FOLDER):
-                if file.startswith(pin_entered) and file.endswith(".zip"):
-                    st.write(f"ZIP file received: {file}")
+                if pin_entered in file:
+                    st.write(f"File received: {file}")
                     with open(os.path.join(UPLOAD_FOLDER, file), 'rb') as f:
-                        st.download_button(label=f"Download ZIP file", data=f, file_name=file)
+                        st.download_button(label="Download the file", data=f, file_name=file)
                     break
             else:
-                # If it's a regular file, allow downloading the file
-                for file in os.listdir(UPLOAD_FOLDER):
-                    if pin_entered in file and not file.endswith(".zip"):
-                        st.write(f"File received: {file}")
-                        with open(os.path.join(UPLOAD_FOLDER, file), 'rb') as f:
-                            st.download_button(label="Download the file", data=f, file_name=file)
-                        break
-                else:
-                    st.error("Incorrect PIN. Please try again.")
+                st.error("Incorrect PIN. Please try again.")
 
 # Main Streamlit UI
 st.title("Secure File/Text Transfer App")
