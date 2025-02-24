@@ -1,22 +1,13 @@
+
 import streamlit as st
 import random
 import string
-import os
-import zipfile
-import pygments
-from pygments import lexers
-from pygments import formatters
-
-# Set up a directory for storing content
-UPLOAD_FOLDER = 'uploads'
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
 
 # Function to generate a random 4-digit PIN
 def generate_pin():
     return ''.join(random.choices(string.digits, k=4))
 
-# Function to send text or file
+# Function to simulate sending a text or file
 def send_file_or_text():
     choice = st.radio("Choose to send a file or text", ("File", "Text"))
     pin = generate_pin()  # Generate PIN before storing any content
@@ -25,132 +16,44 @@ def send_file_or_text():
         text_to_send = st.text_area("Enter the text you want to send:")
         if text_to_send:
             st.write(f"Your PIN is: {pin}")
-            # Store the text content in a file with the PIN as the filename
-            with open(os.path.join(UPLOAD_FOLDER, f"{pin}.txt"), 'w') as f:
-                f.write(text_to_send)
-            return pin
+            return pin, text_to_send
+        else:
+            return pin, None  # Return None for content if no text is provided
     elif choice == "File":
-        uploaded_file = st.file_uploader("Upload a file", type=["txt", "pdf", "jpg", "png", "docx", "zip"])
+        uploaded_file = st.file_uploader("Upload a file", type=["txt", "pdf", "jpg", "png", "docx"])
         if uploaded_file is not None:
             st.write(f"Your PIN is: {pin}")
-            
-            # Check if the uploaded file is a ZIP file
-            if uploaded_file.name.endswith(".zip"):
-                # Extract the ZIP file's contents
-                with zipfile.ZipFile(uploaded_file, 'r') as zip_ref:
-                    zip_ref.extractall(os.path.join(UPLOAD_FOLDER, pin))  # Extract to a directory named with the PIN
-                st.success(f"ZIP file uploaded and extracted with PIN: {pin}")
-            else:
-                # Save the file with the PIN as the filename for other file types
-                with open(os.path.join(UPLOAD_FOLDER, f"{pin}_{uploaded_file.name}"), 'wb') as f:
-                    f.write(uploaded_file.getbuffer())
-                st.success(f"File uploaded with PIN: {pin}")
+            return pin, uploaded_file
+        else:
+            return pin, None  # Return None for content if no file is uploaded
 
-            return pin
-    return None
-
-# Function to receive content using the PIN
-def receive_content():
-    pin_entered = st.text_input("Enter the PIN to receive the content:")
-
+# Function to simulate receiving a text or file using the PIN
+def receive_content(stored_pin, stored_content):
+    pin_entered = st.text_input("Enter the PIN:")
+    
     if pin_entered:
-        # Check if the uploaded content is a text file first
-        text_file_path = os.path.join(UPLOAD_FOLDER, f"{pin_entered}.txt")
-        if os.path.exists(text_file_path):
-            with open(text_file_path, 'r') as f:
-                content = f.read()
-            st.write("Text received:")
-            st.write(content)
+        if pin_entered == stored_pin:
+            st.write("PIN Verified Successfully!")
+            if isinstance(stored_content, str):  # If it's a text
+                st.write("Text received:")
+                st.write(stored_content)
+            elif stored_content is not None:  # If it's a file
+                st.write("File received:")
+                st.download_button("Download the file", stored_content, file_name="received_file")
         else:
-            # If it's a directory containing extracted ZIP contents, list them
-            zip_folder_path = os.path.join(UPLOAD_FOLDER, pin_entered)
-            if os.path.exists(zip_folder_path):
-                st.write(f"Contents of ZIP file uploaded with PIN {pin_entered}:")
-                for file_name in os.listdir(zip_folder_path):
-                    st.write(f"- {file_name}")
-                    file_path = os.path.join(zip_folder_path, file_name)
-                    with open(file_path, 'rb') as f:
-                        st.download_button(label=f"Download {file_name}", data=f, file_name=file_name)
-            else:
-                # If it's a regular file, allow downloading the file
-                for file in os.listdir(UPLOAD_FOLDER):
-                    if pin_entered in file:
-                        st.write(f"File received: {file}")
-                        with open(os.path.join(UPLOAD_FOLDER, file), 'rb') as f:
-                            st.download_button(label="Download the file", data=f, file_name=file)
-                        break
-                else:
-                    st.error("Incorrect PIN. Please try again.")
-
-# Function to beautify code
-def beautify_code(code_to_send, language):
-    try:
-        # Use the selected language's lexer
-        lexer = None
-        if language == "Python":
-            lexer = lexers.get_lexer_by_name('python')
-        elif language == "JavaScript":
-            lexer = lexers.get_lexer_by_name('javascript')
-        elif language == "Java":
-            lexer = lexers.get_lexer_by_name('java')
-        elif language == "C++":
-            lexer = lexers.get_lexer_by_name('cpp')
-        elif language == "Ruby":
-            lexer = lexers.get_lexer_by_name('ruby')
-        else:
-            lexer = lexers.guess_lexer(code_to_send)  # Default guess if no language is selected
-
-        formatter = formatters.HtmlFormatter(linenos=True, full=True)
-
-        # Beautify the code using the correct lexer and formatter
-        formatted_code = pygments.highlight(code_to_send, lexer, formatter)
-
-        # Display the beautified code with syntax highlighting
-        st.markdown("### Your beautified code:")
-        st.markdown(f"<pre>{formatted_code}</pre>", unsafe_allow_html=True)
-
-        # Provide a button to download the beautified code as an HTML file
-        pin = generate_pin()
-        with open(os.path.join(UPLOAD_FOLDER, f"{pin}_code.html"), "w") as f:
-            f.write(formatted_code)  # Save formatted code instead of original
-
-        st.download_button(label="Download Beautified Code", data=formatted_code, file_name=f"{pin}_code.html")
-        st.success(f"Code formatted and saved with PIN: {pin}")
-    except Exception as e:
-        st.error(f"Error formatting code: {e}")
-        st.write("Please ensure the code is valid and in the correct format.")
-
-# Page for code transfer and beautification
-def transfer_code_page():
-    st.title("Transfer Code")
-
-    # Ask user to select the programming language
-    language = st.selectbox("Select the programming language:", ["Python", "JavaScript", "Java", "C++", "Ruby", "Other"])
-
-    code_to_send = st.text_area("Enter your code here:")
-
-    if code_to_send:
-        beautify_code(code_to_send, language)
+            st.error("Incorrect PIN. Please try again.")
 
 # Main Streamlit UI
-st.sidebar.title("Menu")
-page = st.sidebar.selectbox("Choose a page", ["Transfer Content", "Transfer Code"])
+st.title("Secure File/Text Transfer App")
 
-if page == "Transfer Content":
-    # Create two columns: one for sending, one for receiving
-    col1, col2 = st.columns(2)
+mode = st.radio("Choose mode", ("Send", "Receive"))
 
-    # **Sender Column (col1)**:
-    with col1:
-        st.header("Send Content")
-        pin = send_file_or_text()
-        if pin:
-            st.success(f"Your PIN is: {pin}")  # Inform the user about the PIN for sending
+if mode == "Send":
+    pin, stored_content = send_file_or_text()
+    stored_pin = pin  # Store pin and content temporarily for this session (in production, store in a secure DB)
 
-    # **Receiver Column (col2)**:
-    with col2:
-        st.header("Receive Content")
-        receive_content()
-
-elif page == "Transfer Code":
-    transfer_code_page()
+elif mode == "Receive":
+    if 'stored_pin' in locals() and 'stored_content' in locals():  # Ensure these variables are available
+        receive_content(stored_pin, stored_content)
+    else:
+        st.warning("No content is available to receive. Please first send content using the 'Send' mode.")
